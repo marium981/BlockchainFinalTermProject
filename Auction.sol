@@ -24,8 +24,8 @@ contract Auction {
         require(_start < _end, "Start time should be less than end time");
         owner = msg.sender;
         startDate = _start;
-        //endDate = _end;
-        endDate = block.timestamp + 200;
+        endDate = _end;
+        //endDate = block.timestamp + 200;
         bidIncrement = _increment;
     }
 
