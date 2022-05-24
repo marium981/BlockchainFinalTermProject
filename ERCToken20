@@ -1,0 +1,73 @@
+pragma solidity >=0.7.0 <0.9.0;
+
+
+interface IERC20Token {
+
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address _owner) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function transfer(address receiver, uint tokens) external returns (bool);
+    function approve(address spender, uint tokens) external returns (bool);
+    function transferFrom(address sender, address recipient, uint tokens) external returns (bool);
+
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract ERC20Token is IERC20Token {
+    string public constant name = "ERC20Token";
+    string public constant symbol = "ERC2";
+    uint public constant decimal = 10;
+
+    uint256 totalSupplyTokens;
+    mapping(address => uint256) balances;
+
+    //how much two accounts are allowed to withdraw together
+    mapping(address => mapping (address => uint256)) allowed;
+
+    constructor(){
+        totalSupplyTokens = 1000000000000000000000;
+        balances[msg.sender] = 1000000000000000000000;
+    }
+
+    function totalSupply() public override view returns (uint){
+        return totalSupplyTokens;
+    }
+
+    function balanceOf(address _owner) public override view returns(uint){
+        return balances[_owner];
+    }
+
+    function transfer(address receiver, uint tokens) public override returns (bool) {
+        require(tokens <= balances[msg.sender], "You don't have enough balance");
+        balances[msg.sender] = balances[msg.sender] - tokens;
+        balances[receiver] += tokens;
+        emit Transfer(msg.sender, receiver, tokens);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint tokens) public override returns (bool) {
+        require(tokens <= balances[sender], "You don't have enough balance");
+        require(tokens <= allowed[sender][msg.sender], "You are not allowed to send this number of tokens");
+        balances[sender] = balances[sender] - tokens;
+        allowed[sender][msg.sender] = allowed[sender][msg.sender] - tokens;
+        balances[recipient] = balances[recipient] + tokens;
+        emit Transfer(sender, recipient, tokens);
+        return true;
+    }
+
+    // approve a spender account to transfer tokens from owner's account
+    function approve(address spender, uint tokens) public override returns (bool) {
+        allowed[msg.sender][spender] = tokens;
+        emit Approval(msg.sender, spender, tokens);
+        return true;
+    }
+
+    // returns the amount which spender is still allowed to withdraw from owner.
+    function allowance(address owner, address spender) public override view returns (uint) {
+        return allowed[owner][spender];
+    }
+
+}
